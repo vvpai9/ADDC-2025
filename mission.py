@@ -220,7 +220,7 @@ def initialise():
 
     # Connect to the vehicle at startup
     print("Connecting to vehicle...")
-    vehicle = connect('/dev/tty/ACM0', baud=92100, wait_ready=True, timeout=60) # Replace the connection string with the appropriate port and baudrate
+    vehicle = connect('/dev/tty/ACM0', baud=921600, wait_ready=True, timeout=60) # Replace the connection string with the appropriate port and baudrate
 
 if __name__ == "__main__":
     initialise()
