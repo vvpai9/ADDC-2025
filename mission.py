@@ -5,6 +5,7 @@ from pyzbar.pyzbar import decode
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from geopy.distance import geodesic
+import threading
 
 # Define geofence
 geofence = [
@@ -19,6 +20,9 @@ y_divisions = 10
 altitude = 15
 vehicle = None
 initial_qr_data = None
+target_location = None
+prev_qr = None
+
 
 def generate_grid(geofence, x_divisions, y_divisions):
     """Generate a search grid based on geofence coordinates."""
@@ -42,23 +46,17 @@ def generate_grid(geofence, x_divisions, y_divisions):
     
     return grid
 
+
 def serpentine_path_grid(grid):
-    print("Serpentine path started")
+    """Follow a serpentine path over the grid."""
     for i, row in enumerate(grid):
-        if i % 2 == 0:
-            # Move from left to right
-            print("Move from left to right")
-            for point in row:
-                lat, lon = point
-                go_to_location(lat, lon, altitude)
-                time.sleep(0.1)
-        else:
-            # Move from right to left
-            print("Move from right to left")
-            for point in reversed(row):
-                lat, lon = point
-                go_to_location(lat, lon, altitude)
-                time.sleep(0.1)
+        path = row if i % 2 == 0 else reversed(row)
+        for point in path:
+            lat, lon = point
+            go_to_location(lat, lon, altitude)
+            scan_qr_code()
+            time.sleep(0.1)
+
 
 def arm_and_takeoff(target_altitude):
     """Arm the drone and take off to the target altitude."""
@@ -82,6 +80,20 @@ def arm_and_takeoff(target_altitude):
             break
         time.sleep(1)
 
+def send_ned_velocity(velocity_x, velocity_y,velocity_z):
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0,  # time_boot_ms (not used)
+        0, 0,  # target system, target component
+        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,  # frame
+        0b10111000111,  # type_mask (only speeds enabled)
+        0, 0, 0,  # x, y, z positions (not used)
+        velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
+        0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+        0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
 def drop_payload():
     """Trigger servo to drop payload."""
     print("Dropping payload...")
@@ -93,41 +105,43 @@ def drop_payload():
     time.sleep(2)
     print("Payload dropped")
 
-def scan_qr_code(target=None):
-    """Scan for QR codes using a webcam."""
+
+def scan_qr_code():
+    """Continuously scan for QR codes and track bounding boxes."""
+    global prev_qr, target_location
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        print("Error: Could not open webcam.")
-        return None
-
-    target_location = None
+        return
+    
     while True:
         ret, frame = cap.read()
         if not ret:
             print("Failed to capture frame")
             break
-
+        
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         qr_codes = decode(gray)
-
-        cv2.imshow('QR Code Scanner', frame)
+        
         for qr in qr_codes:
+            pts = np.array(qr.polygon, np.int32).reshape((-1, 1, 2))
+            cv2.polylines(frame, [pts], True, (0, 255, 0), 2)
             qr_data = qr.data.decode('utf-8')
-            print(f"QR Code Detected: {qr_data}")
-            if target:
-                if qr_data == target:
-                    print("Target QR code detected.")
+            
+            if qr_data != prev_qr:
+                print(f"QR Code Detected: {qr_data}")
+                prev_qr = qr_data
+                
+                if qr_data == initial_qr_data:
+                    print("Target QR code detected")
                     target_location = vehicle.location.global_relative_frame
-            cap.release()
-            cv2.destroyAllWindows()
-            return qr_data
-
+        
+        cv2.imshow('QR Code Scanner', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     
     cap.release()
     cv2.destroyAllWindows()
-    return target_location
+
 
 def go_to_location(latitude, longitude, altitude):
     """Navigate to a GPS location."""
@@ -137,19 +151,17 @@ def go_to_location(latitude, longitude, altitude):
 
     while True:
         current_location = vehicle.location.global_relative_frame
-        distance_to_target = get_distance_metres(current_location, target_location)
-        print(f"Distance to waypoint: {distance_to_target:.2f} meters")
-    
-        if distance_to_target <= 1.0:
-            print("Reached waypoint.")
+        if get_distance_metres(current_location, target_location) <= 1.0:
             break
         time.sleep(1)
 
+
 def get_distance_metres(location1, location2):
-    """Calculate the distance between two GPS coordinates in meters."""
+    """Calculate distance between two GPS coordinates."""
     coords_1 = (location1.lat, location1.lon)
     coords_2 = (location2.lat, location2.lon)
     return geodesic(coords_1, coords_2).meters
+
 
 def mission():
     """Execute the full drone mission."""
@@ -163,27 +175,41 @@ def mission():
     arm_and_takeoff(altitude)
     time.sleep(2)
 
+    detection_thread = threading.Thread(target=scan_qr_code, name="QR Detection")   
+    detection_thread.start()
     # Follow the grid path
     serpentine_path_grid(grid)
     time.sleep(2)
-
+    
+    if target_location:
+        print("Moving to Target...")
+        go_to_location(target_location.lat, target_location.lon, altitude)
+        time.sleep(2)
+        for i in range (10): # Descend from 15 m to 5 m
+            send_ned_velocity(0,0,1) # Descend 1 m every second 
+            time.sleep(1)            
+        drop_payload()
+        time.sleep(2)
+    else:
+        print("Target not found")
+    
     print("Returning to Launch...")
     vehicle.mode = VehicleMode("RTL")
     
     while vehicle.armed:
         time.sleep(1)
     
-    end_time = time.time()
-    print(f"Mission Time: {end_time - start_time:.2f} seconds")
-    print("Mission complete.")
+    detection_thread.join()
+    print(f"Mission Time: {time.time() - start_time:.2f} seconds")
+
 
 def initialise():
-    """Initialize QR scanning and countdown before mission."""
+    """Initialize QR scanning and drone connection."""
     global vehicle, initial_qr_data
     initial_qr_data = scan_qr_code()
     if not initial_qr_data:
         print("No QR code detected, aborting mission")
-    
+        return
     input("Press Enter to start mission...")
 
     # Connect to the vehicle at startup
