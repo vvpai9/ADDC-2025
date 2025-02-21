@@ -208,7 +208,9 @@ def mission():
         print(f"An error occurred: {e}")
     finally:
         detection_thread.join()
-        print(f"Mission Time: {time.time() - start_time:.2f} seconds")
+        end_time = time.time()
+        mission_time = end_time - start_time
+        print(f"Mission Time: {mission_time:.2f} seconds")
 
 
 def initialise():
