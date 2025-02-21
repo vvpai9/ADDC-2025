@@ -3,7 +3,9 @@ from pymavlink import mavutil
 
 # Establish connection to the drone
 master = mavutil.mavlink_connection("udpout:192.168.144.10:14552")
-
+GUIDED = 4
+RTL = 6
+LAND = 9
 # Send a ping to verify connection
 master.mav.ping_send(
     int(time.time() * 1e6),  # Unix time in microseconds
@@ -17,14 +19,14 @@ master.wait_heartbeat()
 print("Heartbeat received! Drone is online.")
 
 # Function to change mode
-def set_mode(mode):
-    mode_id = master.mode_mapping()[mode]
+def set_mode(mode_id):
     master.mav.set_mode_send(
         master.target_system,
         mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
         mode_id
     )
-    print(f"Mode set to {mode}")
+    print(f"Mode set to ID {mode_id}")
+
 
 # Function to arm/disarm the drone
 def arm_disarm(arm):
@@ -40,15 +42,38 @@ def arm_disarm(arm):
     print(f"Drone {state}")
     time.sleep(2)  # Give some time for the action to take effect
 
+# Function to initiate takeoff to a specified altitude
+def takeoff(altitude):
+    print(f"Initiating takeoff to {altitude} meters...")
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
+        0,
+        0, 0, 0, 0, 0, 0, altitude
+    )
+    print("Takeoff command sent.")
+
 # Set mode to GUIDED (needed for arming)
-set_mode("GUIDED")
+print("GUIDED Mode")
+set_mode(GUIDED)
 time.sleep(2)
+# print("RTL Mode")
+# set_mode(RTL)
+# time.sleep(2)
+
 
 # Arm the drone
 arm_disarm(True)
 
+# Take off to 5 meters
+takeoff(5)
+
 # Wait for 5 seconds
 time.sleep(5)
+
+print("LAND Mode")
+set_mode(LAND)
 
 # Disarm the drone
 arm_disarm(False)
