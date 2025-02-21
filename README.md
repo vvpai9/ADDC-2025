@@ -14,3 +14,8 @@ pip install opencv-python
 pip install pyserial
 pip install pyzbar
 ```
+
+In terminal, run the following code:
+```
+python3 mission.py
+```
