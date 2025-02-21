@@ -77,7 +77,7 @@ def arm_and_takeoff(target_altitude):
             break
         time.sleep(1)
 
-def send_ned_velocity(velocity_x, velocity_y,velocity_z):
+def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration=1):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,  # time_boot_ms (not used)
         0, 0,  # target system, target component
@@ -88,19 +88,23 @@ def send_ned_velocity(velocity_x, velocity_y,velocity_z):
         0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
         0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
-    vehicle.send_mavlink(msg)
-    vehicle.flush()
+    for i in range (duration):    
+        vehicle.send_mavlink(msg)
+        vehicle.flush()
+        time.sleep(1)
 
-def drop_payload():
-    """Trigger servo to drop payload."""
-    print("Dropping payload...")
+def drop_payload(PWM):
     msg = vehicle.message_factory.command_long_encode(
-        0, 0, mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
-        0, 9, 2000, 0, 0, 0, 0, 0  
-    )
+        0, 0,  # target_system, target_component
+        mavutil.mavlink.MAV_CMD_DO_SET_SERVO,  # command
+        0,  # confirmation
+        9,  # servo number
+        PWM,  # servo position between 1000 and 2000
+        0, 0, 0, 0, 0)  # param 3 ~ 7 not used
+    print("Dropping Payload...")
+    # send command to vehicle
     vehicle.send_mavlink(msg)
-    time.sleep(2)
-    print("Payload dropped")
+    print("Payload Dropped...")
 
 def scan_qr_code():
     """Continuously scan for QR codes and track bounding boxes."""
@@ -185,10 +189,8 @@ def mission():
             print("Moving to Target...")
             go_to_location(target_location.lat, target_location.lon, altitude)
             time.sleep(2)
-            for i in range (10): # Descend from 15 m to 5 m
-                send_ned_velocity(0,0,1) # Descend 1 m every second 
-                time.sleep(1)            
-            drop_payload()
+            send_ned_velocity(0,0,1,10) # Descend 1 m every second for 10 seconds (Change as required)         
+            drop_payload(2000) # Change PWM values as required
             time.sleep(2)
         else:
             print("Target not found")
