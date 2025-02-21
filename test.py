@@ -2,7 +2,7 @@ import time
 from pymavlink import mavutil
 
 # Establish connection to the drone
-master = mavutil.mavlink_connection--udpout:192.168.144.10:14552")
+master = mavutil.mavlink_connection("udpout:192.168.144.10:14552")
 
 # Send a ping to verify connection
 master.mav.ping_send(
