@@ -23,7 +23,6 @@ initial_qr_data = None
 target_location = None
 prev_qr = None
 
-
 def generate_grid(geofence, x_divisions, y_divisions):
     """Generate a search grid based on geofence coordinates."""
     print("Generating grid...")
@@ -46,7 +45,6 @@ def generate_grid(geofence, x_divisions, y_divisions):
     
     return grid
 
-
 def serpentine_path_grid(grid):
     """Follow a serpentine path over the grid."""
     for i, row in enumerate(grid):
@@ -54,9 +52,7 @@ def serpentine_path_grid(grid):
         for point in path:
             lat, lon = point
             go_to_location(lat, lon, altitude)
-            scan_qr_code()
             time.sleep(0.1)
-
 
 def arm_and_takeoff(target_altitude):
     """Arm the drone and take off to the target altitude."""
@@ -68,14 +64,15 @@ def arm_and_takeoff(target_altitude):
         print("Waiting for arming...")
         time.sleep(1)
 
+    time.sleep(2) # Wait till all motors provide same thrust
     print("Taking off...")
     vehicle.simple_takeoff(target_altitude)
 
     while True:
-        altitude_now = vehicle.location.global_relative_frame.alt
-        print(f"Altitude: {altitude_now:.2f} meters")
+        current_altitude = vehicle.location.global_relative_frame.alt
+        print(f"Altitude: {current_altitude:.2f} meters")
 
-        if altitude_now >= target_altitude * 0.95:
+        if current_altitude >= target_altitude * 0.95:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -104,7 +101,6 @@ def drop_payload():
     vehicle.send_mavlink(msg)
     time.sleep(2)
     print("Payload dropped")
-
 
 def scan_qr_code():
     """Continuously scan for QR codes and track bounding boxes."""
@@ -142,19 +138,19 @@ def scan_qr_code():
     cap.release()
     cv2.destroyAllWindows()
 
-
 def go_to_location(latitude, longitude, altitude):
     """Navigate to a GPS location."""
     print(f"Going to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}")
     target_location = LocationGlobalRelative(latitude, longitude, altitude)
-    vehicle.simple_goto(target_location, groundspeed=2.8)
+    vehicle.simple_goto(target_location, groundspeed=3)
 
     while True:
         current_location = vehicle.location.global_relative_frame
-        if get_distance_metres(current_location, target_location) <= 1.0:
+        dist = get_distance_metres(current_location, target_location)
+        print(f"Distance to target: {dist:.2f} meters")
+        if dist <= 1.0:
             break
         time.sleep(1)
-
 
 def get_distance_metres(location1, location2):
     """Calculate distance between two GPS coordinates."""
@@ -162,45 +158,55 @@ def get_distance_metres(location1, location2):
     coords_2 = (location2.lat, location2.lon)
     return geodesic(coords_1, coords_2).meters
 
-
 def mission():
     """Execute the full drone mission."""
     print("Mission Begins...")
     start_time = time.time()
-    print(f"Initial QR Data: {initial_qr_data}")
-    # Generate the grid
-    grid = generate_grid(geofence, x_divisions, y_divisions)
 
-    # Takeoff
-    arm_and_takeoff(altitude)
-    time.sleep(2)
+    try:
+        print(f"Initial QR Data: {initial_qr_data}")
+        
+        # Generate the grid
+        grid = generate_grid(geofence, x_divisions, y_divisions)
 
-    detection_thread = threading.Thread(target=scan_qr_code, name="QR Detection")   
-    detection_thread.start()
-    # Follow the grid path
-    serpentine_path_grid(grid)
-    time.sleep(2)
-    
-    if target_location:
-        print("Moving to Target...")
-        go_to_location(target_location.lat, target_location.lon, altitude)
+        # Takeoff
+        arm_and_takeoff(altitude)
+        time.sleep(2) # Hover for 2 seconds
+        
+        # Start QR detection thread
+        detection_thread = threading.Thread(target=scan_qr_code, name="QR Detection")   
+        detection_thread.start()
+        
+        # Follow the grid path
+        serpentine_path_grid(grid)
         time.sleep(2)
-        for i in range (10): # Descend from 15 m to 5 m
-            send_ned_velocity(0,0,1) # Descend 1 m every second 
-            time.sleep(1)            
-        drop_payload()
-        time.sleep(2)
-    else:
-        print("Target not found")
-    
-    print("Returning to Launch...")
-    vehicle.mode = VehicleMode("RTL")
-    
-    while vehicle.armed:
-        time.sleep(1)
-    
-    detection_thread.join()
-    print(f"Mission Time: {time.time() - start_time:.2f} seconds")
+        
+        if target_location:
+            print("Moving to Target...")
+            go_to_location(target_location.lat, target_location.lon, altitude)
+            time.sleep(2)
+            for i in range (10): # Descend from 15 m to 5 m
+                send_ned_velocity(0,0,1) # Descend 1 m every second 
+                time.sleep(1)            
+            drop_payload()
+            time.sleep(2)
+        else:
+            print("Target not found")
+        
+        print("Returning to Launch...")
+        vehicle.mode = VehicleMode("RTL")
+        
+        while vehicle.armed:
+            time.sleep(1)
+        
+        print("Mission Completed")
+    except KeyboardInterrupt:
+        print("Mission aborted by user")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        detection_thread.join()
+        print(f"Mission Time: {time.time() - start_time:.2f} seconds")
 
 
 def initialise():
