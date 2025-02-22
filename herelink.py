@@ -155,7 +155,7 @@ def go_to_location(latitude, longitude, altitude):
             current_alt = msg.relative_alt / 1000.0
             distance = geodesic((latitude, longitude), (current_lat, current_lon)).meters
             print(f"Distance to target: {distance:.2f} meters | Current Altitude: {current_alt:.2f} m")
-            if distance <= 1.0 and abs(current_alt - altitude) <= 0.5:
+            if distance <= 1.0:
                 print("Reached target location.")
                 break
         time.sleep(0.5)
