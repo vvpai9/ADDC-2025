@@ -178,7 +178,7 @@ def mission():
         # Wait for 5 seconds
         time.sleep(3)
 
-        # # Land the drone
+        # Land the drone
         # print("LAND Mode")
         # set_mode(LAND)
         # time.sleep(2)
@@ -194,7 +194,8 @@ def mission():
         print(e)
     finally:
         end_time = time.time()
-        print(f"Mission Time: {end_time - start_time:.2f} seconds")
+        mission_time = end_time - start_time
+        print(f"Mission Time: {mission_time:.2f} seconds")
 
 if __name__ == "__main__":
     mission()
