@@ -166,12 +166,9 @@ def mission():
         # Mission sequence
         start_time = time.time()
         print("Mission Begins")
-
-        # Arm the drone
+        
+        # Arm and takeoff to 3 meters
         arm_and_takeoff(3)
-
-        # Wait for 3 seconds
-        time.sleep(3)
 
         # Example navigation command
         go_to_location(15.369547387511489, 75.12451470433041, 3)  # Coordinates of Bangalore
