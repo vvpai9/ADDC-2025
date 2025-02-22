@@ -59,7 +59,7 @@ def set_mode(mode_id):
             print(f"Mode successfully changed to ID {mode_id}")
             break
 
-# Function to arm/disarm the drone
+# Function to arm the drone and takeoff to altitude
 def arm_and_takeoff(altitude):
     print("GUIDED Mode")
     set_mode(GUIDED)
@@ -166,7 +166,7 @@ def mission():
         # Mission sequence
         start_time = time.time()
         print("Mission Begins")
-        
+
         # Arm and takeoff to 3 meters
         arm_and_takeoff(3)
 
