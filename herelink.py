@@ -128,17 +128,25 @@ def drop_payload(PWM):
         0, 0, 0, 0, 0) # param 3 ~ 7 not used
     print("Payload Dropped.")
 
-# Function to move the drone to a specific GPS location
 def go_to_location(latitude, longitude, altitude):
     print(f"Navigating to Lat: {latitude}, Lon: {longitude}, Alt: {altitude} m")
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
-        0,
-        0, 0, 0, 0,
-        latitude, longitude, altitude
+
+    # Send SET_POSITION_TARGET_GLOBAL_INT command
+    master.mav.set_position_target_global_int_send(
+        int(time.time() * 1e6),  # Timestamp in microseconds
+        master.target_system,    # Target system ID
+        master.target_component, # Target component ID
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,  # Frame of reference
+        0b0000111111111000,      # Type mask (only position enabled)
+        int(latitude * 1e7),     # Latitude in 1E7 degrees
+        int(longitude * 1e7),    # Longitude in 1E7 degrees
+        altitude,                # Altitude in meters (relative to takeoff)
+        0, 0, 0,                 # No velocity control
+        0, 0, 0,                 # No acceleration control
+        0, 0                     # No yaw control
     )
+
+    # Monitor the distance to the target
     while True:
         msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
         if msg:
@@ -146,11 +154,12 @@ def go_to_location(latitude, longitude, altitude):
             current_lon = msg.lon / 1e7
             current_alt = msg.relative_alt / 1000.0
             distance = geodesic((latitude, longitude), (current_lat, current_lon)).meters
-            print(f"Distance to target: {distance:.2f} meters")
-            if distance <= 1.0:
+            print(f"Distance to target: {distance:.2f} meters | Current Altitude: {current_alt:.2f} m")
+            if distance <= 1.0 and abs(current_alt - altitude) <= 0.5:
                 print("Reached target location.")
                 break
-        time.sleep(1)
+        time.sleep(0.5)
+
 
 def mission():
     try:
@@ -159,25 +168,25 @@ def mission():
         print("Mission Begins")
 
         # Arm the drone
-        arm_and_takeoff(5)
+        arm_and_takeoff(3)
 
-        # Wait for 5 seconds
-        time.sleep(5)
+        # Wait for 3 seconds
+        time.sleep(3)
 
         # Example navigation command
-        go_to_location(12.9716, 77.5946, 10)  # Coordinates of Bangalore
+        go_to_location(15.369547387511489, 75.12451470433041, 3)  # Coordinates of Bangalore
 
         # Wait for 5 seconds
-        time.sleep(5)
+        time.sleep(3)
 
-        # Land the drone
-        print("LAND Mode")
-        set_mode(LAND)
-        time.sleep(2)
-
-        # print("RTL Mode")
-        # set_mode(RTL)
+        # # Land the drone
+        # print("LAND Mode")
+        # set_mode(LAND)
         # time.sleep(2)
+
+        print("RTL Mode")
+        set_mode(RTL)
+        time.sleep(2)
 
         print("Mission complete.")
     except KeyboardInterrupt:
