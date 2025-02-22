@@ -3,6 +3,8 @@ from pymavlink import mavutil
 from geopy.distance import geodesic
 
 # Establish connection to the drone
+print("Connecting to drone...")
+time.sleep(2)
 master = mavutil.mavlink_connection("udpout:192.168.144.10:14552")
 
 # Modes for ArduPilot
