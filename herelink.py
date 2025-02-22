@@ -173,7 +173,7 @@ def mission():
         arm_and_takeoff(3)
 
         # Example navigation command
-        go_to_location(15.369547387511489, 75.12451470433041, 3)  # Coordinates of Bangalore
+        go_to_location(15.369547387511489, 75.12451470433041, 3)
 
         # Wait for 5 seconds
         time.sleep(3)
