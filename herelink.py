@@ -4,9 +4,33 @@ from geopy.distance import geodesic
 
 # Establish connection to the drone
 master = mavutil.mavlink_connection("udpout:192.168.144.10:14552")
+
+# Modes for ArduPilot
+STABILIZE = 0
+ACRO = 1
+ALT_HOLD = 2
+AUTO = 3
 GUIDED = 4
+LOITER = 5
 RTL = 6
+CIRCLE = 7
 LAND = 9
+DRIFT = 11
+SPORT = 13
+FLIP = 14
+AUTOTUNE = 15
+POSHOLD = 16
+BRAKE = 17
+THROW = 18
+AVOID_ADSB = 19
+GUIDED_NO_GPS = 20
+SMART_RTL = 21
+FLOWHOLD = 22
+FOLLOW = 23
+ZIGZAG = 24
+SYSTEMID = 25
+AUTOROTATE = 26
+AUTO_RTL = 27
 
 # Send a ping to verify connection
 master.mav.ping_send(
@@ -36,21 +60,28 @@ def set_mode(mode_id):
             break
 
 # Function to arm/disarm the drone
-def arm_disarm(arm):
+def arm_and_takeoff(altitude):
+    print("GUIDED Mode")
+    set_mode(GUIDED)
+    time.sleep(2)
+    
+    print("Arming motors...")
     master.mav.command_long_send(
         master.target_system,
         master.target_component,
         mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
         0,
-        1 if arm else 0,  # 1 to arm, 0 to disarm
+        1,  # 1 to arm, 0 to disarm
         0, 0, 0, 0, 0, 0
     )
-    state = "Armed" if arm else "Disarmed"
-    print(f"Drone {state}")
+    while True:
+        msg = master.recv_match(type='HEARTBEAT', blocking=True)
+        if msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED:
+            print("Drone armed.")
+            break
+        time.sleep(1)
     time.sleep(2)  # Allow time for action
 
-# Function to initiate takeoff to a specified altitude
-def takeoff(altitude):
     print(f"Initiating takeoff to {altitude} meters...")
     master.mav.command_long_send(
         master.target_system,
@@ -61,7 +92,7 @@ def takeoff(altitude):
     )
     print("Takeoff command sent.")
     while True:
-        msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
+        msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=False)
         if msg:
             current_altitude = msg.relative_alt / 1000.0  # Convert from mm to meters
             print(f"Altitude: {current_altitude:.2f} meters")
@@ -74,29 +105,27 @@ def takeoff(altitude):
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration=1):
     for _ in range(duration):
         master.mav.set_position_target_local_ned_send(
-            0,
-            master.target_system,
-            master.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
-            0b0000111111000111,
-            0, 0, 0,
-            velocity_x, velocity_y, velocity_z,
-            0, 0, 0,
-            0, 0
-        )
+            0,  # time_boot_ms (not used)
+            master.target_system, # target system
+            master.target_component, # target component
+            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame
+            0b10111000111,  # type_mask (only speeds enabled)
+            0, 0, 0, # x, y, z positions (not used)
+            velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
+            0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
         time.sleep(1)
 
 # Function to drop payload using servo
 def drop_payload(PWM):
     master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
-        0,
+        master.target_system, # target_system
+        master.target_component, # target_component
+        mavutil.mavlink.MAV_CMD_DO_SET_SERVO, # command
+        0, # confirmation
         9,  # Servo number
-        PWM,
-        0, 0, 0, 0, 0
-    )
+        PWM, # servo position between 1000 and 2000
+        0, 0, 0, 0, 0) # param 3 ~ 7 not used
     print("Payload Dropped.")
 
 # Function to move the drone to a specific GPS location
@@ -127,16 +156,10 @@ def mission():
     try:
         # Mission sequence
         start_time = time.time()
-        print("GUIDED Mode")
-        set_mode(GUIDED)
-        time.sleep(2)
         print("Mission Begins")
 
         # Arm the drone
-        arm_disarm(True)
-
-        # Take off to 5 meters
-        takeoff(5)
+        arm_and_takeoff(5)
 
         # Wait for 5 seconds
         time.sleep(5)
