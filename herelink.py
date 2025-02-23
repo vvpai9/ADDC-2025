@@ -76,14 +76,8 @@ def arm_and_takeoff(altitude):
         1,  # 1 to arm, 0 to disarm
         0, 0, 0, 0, 0, 0
     )
-    while True:
-        msg = master.recv_match(type='HEARTBEAT', blocking=True)
-        if msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED:
-            print("Drone armed.")
-            break
-        time.sleep(1)
-    time.sleep(2)  # Allow time for action
 
+    time.sleep(2)
     print(f"Initiating takeoff to {altitude} meters...")
     master.mav.command_long_send(
         master.target_system,
@@ -131,24 +125,36 @@ def drop_payload(PWM):
     print("Payload Dropped.")
 
 def go_to_location(latitude, longitude, altitude):
-    print(f"Navigating to Lat: {latitude}, Lon: {longitude}, Alt: {altitude} m")
+    """
+    Sends a command to go to the specified GPS location.
+    
+    Parameters:
+    - connection: MAVLink connection object
+    - latitude: Target latitude in degrees
+    - longitude: Target longitude in degrees
+    - altitude: Target altitude in meters (relative to home position)
+    """
+    # Convert latitude and longitude to degrees * 1E7 (MAVLink format)
+    lat = int(latitude * 1e7)
+    lon = int(longitude * 1e7)
 
-    # Send SET_POSITION_TARGET_GLOBAL_INT command
-    master.mav.set_position_target_global_int_send(
-        int(time.time() * 1e6),  # Timestamp in microseconds
-        master.target_system,    # Target system ID
-        master.target_component, # Target component ID
-        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,  # Frame of reference
-        0b0000111111111000,      # Type mask (only position enabled)
-        int(latitude * 1e7),     # Latitude in 1E7 degrees
-        int(longitude * 1e7),    # Longitude in 1E7 degrees
-        altitude,                # Altitude in meters (relative to takeoff)
-        0, 0, 0,                 # No velocity control
-        0, 0, 0,                 # No acceleration control
-        0, 0                     # No yaw control
+    # Sending command using MAV_CMD_NAV_WAYPOINT
+    master.mav.command_long_send(
+        master.target_system,  # Target system ID
+        master.target_component,  # Target component ID
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,  # Command ID
+        0,  # Confirmation
+        0,  # Hold time in seconds
+        0,  # Acceptance radius in meters
+        0,  # Pass through (0 = stop at waypoint, 1 = continue)
+        float('nan'),  # Yaw (NaN to use default)
+        lat,  # Latitude
+        lon,  # Longitude
+        altitude  # Altitude in meters
     )
+    print(f"Command sent to go to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}m")
 
-    # Monitor the distance to the target
+    # Monitor distance to target
     while True:
         msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
         if msg:
@@ -157,11 +163,10 @@ def go_to_location(latitude, longitude, altitude):
             current_alt = msg.relative_alt / 1000.0
             distance = geodesic((latitude, longitude), (current_lat, current_lon)).meters
             print(f"Distance to target: {distance:.2f} meters | Current Altitude: {current_alt:.2f} m")
-            if distance <= 1.0:
+            if distance <= 1.0 and abs(current_alt - altitude) <= 0.5:
                 print("Reached target location.")
                 break
         time.sleep(0.5)
-
 
 def mission():
     try:
@@ -170,10 +175,10 @@ def mission():
         print("Mission Begins")
 
         # Arm and takeoff to 3 meters
-        arm_and_takeoff(3)
+        # arm_and_takeoff(3)
 
         # Example navigation command
-        go_to_location(15.369547387511489, 75.12451470433041, 3)
+        go_to_location(15.369547, 75.124514, 3)
 
         # Wait for 5 seconds
         time.sleep(3)
@@ -184,7 +189,7 @@ def mission():
         # time.sleep(2)
 
         print("RTL Mode")
-        set_mode(RTL)
+        # set_mode(RTL)
         time.sleep(2)
 
         print("Mission complete.")
