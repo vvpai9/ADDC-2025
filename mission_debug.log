@@ -1,0 +1,187 @@
+2025-02-23 11:23:02,658 - INFO - -----------------------------------------------
+2025-02-23 11:23:02,659 - INFO - Connecting to drone...
+2025-02-23 11:23:06,772 - ERROR - Traceback (most recent call last):
+
+2025-02-23 11:23:06,774 - ERROR -   File "D:\KLE\aeroKLE\ADDC-2025\herelink.py", line 80, in <module>
+    master.wait_heartbeat()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+
+2025-02-23 11:23:06,775 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 559, in wait_heartbeat
+    return self.recv_match(type='HEARTBEAT', blocking=blocking, timeout=timeout)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2025-02-23 11:23:06,776 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 526, in recv_match
+    self.select(0.05)
+    ~~~~~~~~~~~^^^^^^
+
+2025-02-23 11:23:06,776 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 339, in select
+    (rin, win, xin) = select.select([self.fd], [], [], timeout)
+                      ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2025-02-23 11:23:06,777 - ERROR - KeyboardInterrupt
+
+2025-02-23 11:33:05,346 - INFO - -----------------------------------------------
+2025-02-23 11:33:05,347 - INFO - Connecting to drone...
+2025-02-23 11:33:53,337 - ERROR - Traceback (most recent call last):
+
+2025-02-23 11:33:53,339 - ERROR -   File "D:\KLE\aeroKLE\ADDC-2025\herelink.py", line 80, in <module>
+    master.wait_heartbeat()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+
+2025-02-23 11:33:53,340 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 559, in wait_heartbeat
+    return self.recv_match(type='HEARTBEAT', blocking=blocking, timeout=timeout)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2025-02-23 11:33:53,340 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 526, in recv_match
+    self.select(0.05)
+    ~~~~~~~~~~~^^^^^^
+
+2025-02-23 11:33:53,341 - ERROR -   File "C:\Users\Pai\AppData\Local\Programs\Python\Python313\Lib\site-packages\pymavlink\mavutil.py", line 339, in select
+    (rin, win, xin) = select.select([self.fd], [], [], timeout)
+                      ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+2025-02-23 11:33:53,341 - ERROR - KeyboardInterrupt
+
+2025-02-23 11:33:58,051 - INFO - -----------------------------------------------
+2025-02-23 11:33:58,051 - INFO - Connecting to drone...
+2025-02-23 11:34:00,495 - INFO - Heartbeat received! Drone is online.
+2025-02-23 11:34:00,496 - INFO - Mission Begins
+2025-02-23 11:34:00,502 - INFO - Command sent to go to Latitude: 15.369547845989853, Longitude: 75.12451452369874, Altitude: 3m
+2025-02-23 11:34:00,801 - INFO - Distance to target: 97.08 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:01,309 - INFO - Distance to target: 97.07 meters | Current Altitude: -0.38 m
+2025-02-23 11:34:01,814 - INFO - Distance to target: 97.04 meters | Current Altitude: -0.37 m
+2025-02-23 11:34:02,320 - INFO - Distance to target: 97.03 meters | Current Altitude: -0.37 m
+2025-02-23 11:34:02,826 - INFO - Distance to target: 97.02 meters | Current Altitude: -0.37 m
+2025-02-23 11:34:03,331 - INFO - Distance to target: 97.00 meters | Current Altitude: -0.37 m
+2025-02-23 11:34:03,836 - INFO - Distance to target: 96.99 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:04,342 - INFO - Distance to target: 97.00 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:04,846 - INFO - Distance to target: 96.99 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:05,350 - INFO - Distance to target: 96.97 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:05,858 - INFO - Distance to target: 96.97 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:06,363 - INFO - Distance to target: 96.98 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:06,867 - INFO - Distance to target: 96.98 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:07,373 - INFO - Distance to target: 96.97 meters | Current Altitude: -0.38 m
+2025-02-23 11:34:07,880 - INFO - Distance to target: 96.97 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:08,385 - INFO - Distance to target: 96.97 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:08,890 - INFO - Distance to target: 96.91 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:09,395 - INFO - Distance to target: 96.86 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:09,900 - INFO - Distance to target: 96.86 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:10,406 - INFO - Distance to target: 96.83 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:10,910 - INFO - Distance to target: 96.75 meters | Current Altitude: -0.43 m
+2025-02-23 11:34:11,415 - INFO - Distance to target: 96.73 meters | Current Altitude: -0.45 m
+2025-02-23 11:34:11,921 - INFO - Distance to target: 96.80 meters | Current Altitude: -0.47 m
+2025-02-23 11:34:12,425 - INFO - Distance to target: 96.85 meters | Current Altitude: -0.47 m
+2025-02-23 11:34:12,932 - INFO - Distance to target: 96.88 meters | Current Altitude: -0.46 m
+2025-02-23 11:34:13,437 - INFO - Distance to target: 96.87 meters | Current Altitude: -0.43 m
+2025-02-23 11:34:13,941 - INFO - Distance to target: 96.88 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:14,448 - INFO - Distance to target: 96.91 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:14,952 - INFO - Distance to target: 96.96 meters | Current Altitude: -0.44 m
+2025-02-23 11:34:15,457 - INFO - Distance to target: 97.03 meters | Current Altitude: -0.43 m
+2025-02-23 11:34:15,961 - INFO - Distance to target: 97.13 meters | Current Altitude: -0.37 m
+2025-02-23 11:34:16,466 - INFO - Distance to target: 97.30 meters | Current Altitude: -0.34 m
+2025-02-23 11:34:16,972 - INFO - Distance to target: 97.35 meters | Current Altitude: -0.38 m
+2025-02-23 11:34:17,476 - INFO - Distance to target: 97.36 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:17,982 - INFO - Distance to target: 97.46 meters | Current Altitude: -0.45 m
+2025-02-23 11:34:18,486 - INFO - Distance to target: 97.52 meters | Current Altitude: -0.45 m
+2025-02-23 11:34:18,990 - INFO - Distance to target: 97.59 meters | Current Altitude: -0.47 m
+2025-02-23 11:34:19,495 - INFO - Distance to target: 97.64 meters | Current Altitude: -0.50 m
+2025-02-23 11:34:20,001 - INFO - Distance to target: 97.68 meters | Current Altitude: -0.52 m
+2025-02-23 11:34:20,506 - INFO - Distance to target: 97.68 meters | Current Altitude: -0.52 m
+2025-02-23 11:34:21,011 - INFO - Distance to target: 97.78 meters | Current Altitude: -0.55 m
+2025-02-23 11:34:21,517 - INFO - Distance to target: 97.83 meters | Current Altitude: -0.58 m
+2025-02-23 11:34:22,021 - INFO - Distance to target: 97.89 meters | Current Altitude: -0.60 m
+2025-02-23 11:34:22,525 - INFO - Distance to target: 97.91 meters | Current Altitude: -0.64 m
+2025-02-23 11:34:23,032 - INFO - Distance to target: 97.95 meters | Current Altitude: -0.64 m
+2025-02-23 11:34:23,538 - INFO - Distance to target: 97.98 meters | Current Altitude: -0.60 m
+2025-02-23 11:34:24,045 - INFO - Distance to target: 97.97 meters | Current Altitude: -0.51 m
+2025-02-23 11:34:24,549 - INFO - Distance to target: 98.01 meters | Current Altitude: -0.34 m
+2025-02-23 11:34:25,053 - INFO - Distance to target: 98.12 meters | Current Altitude: -0.26 m
+2025-02-23 11:34:25,559 - INFO - Distance to target: 98.23 meters | Current Altitude: 0.08 m
+2025-02-23 11:34:26,064 - INFO - Distance to target: 98.30 meters | Current Altitude: 0.26 m
+2025-02-23 11:34:26,569 - INFO - Distance to target: 98.39 meters | Current Altitude: 0.34 m
+2025-02-23 11:34:27,075 - INFO - Distance to target: 98.41 meters | Current Altitude: 0.38 m
+2025-02-23 11:34:27,579 - INFO - Distance to target: 98.40 meters | Current Altitude: 0.41 m
+2025-02-23 11:34:28,083 - INFO - Distance to target: 98.44 meters | Current Altitude: 0.45 m
+2025-02-23 11:34:28,590 - INFO - Distance to target: 98.60 meters | Current Altitude: 0.41 m
+2025-02-23 11:34:29,095 - INFO - Distance to target: 98.63 meters | Current Altitude: 0.11 m
+2025-02-23 11:34:29,599 - INFO - Distance to target: 98.63 meters | Current Altitude: -0.08 m
+2025-02-23 11:34:30,105 - INFO - Distance to target: 98.67 meters | Current Altitude: -0.32 m
+2025-02-23 11:34:30,612 - INFO - Distance to target: 98.74 meters | Current Altitude: -0.59 m
+2025-02-23 11:34:31,117 - INFO - Distance to target: 98.86 meters | Current Altitude: -0.60 m
+2025-02-23 11:34:31,623 - INFO - Distance to target: 99.03 meters | Current Altitude: -0.69 m
+2025-02-23 11:34:32,128 - INFO - Distance to target: 99.15 meters | Current Altitude: -0.80 m
+2025-02-23 11:34:32,633 - INFO - Distance to target: 99.27 meters | Current Altitude: -0.81 m
+2025-02-23 11:34:33,139 - INFO - Distance to target: 99.41 meters | Current Altitude: -0.85 m
+2025-02-23 11:34:33,644 - INFO - Distance to target: 99.53 meters | Current Altitude: -0.86 m
+2025-02-23 11:34:34,148 - INFO - Distance to target: 99.65 meters | Current Altitude: -0.88 m
+2025-02-23 11:34:34,656 - INFO - Distance to target: 99.75 meters | Current Altitude: -0.87 m
+2025-02-23 11:34:35,161 - INFO - Distance to target: 99.93 meters | Current Altitude: -0.86 m
+2025-02-23 11:34:35,666 - INFO - Distance to target: 100.18 meters | Current Altitude: -0.85 m
+2025-02-23 11:34:36,173 - INFO - Distance to target: 100.41 meters | Current Altitude: -0.83 m
+2025-02-23 11:34:36,678 - INFO - Distance to target: 100.68 meters | Current Altitude: -0.79 m
+2025-02-23 11:34:37,183 - INFO - Distance to target: 100.97 meters | Current Altitude: -0.73 m
+2025-02-23 11:34:37,689 - INFO - Distance to target: 101.23 meters | Current Altitude: -0.73 m
+2025-02-23 11:34:38,194 - INFO - Distance to target: 101.40 meters | Current Altitude: -0.72 m
+2025-02-23 11:34:38,699 - INFO - Distance to target: 101.65 meters | Current Altitude: -0.72 m
+2025-02-23 11:34:39,205 - INFO - Distance to target: 102.21 meters | Current Altitude: -0.78 m
+2025-02-23 11:34:39,710 - INFO - Distance to target: 102.90 meters | Current Altitude: -0.80 m
+2025-02-23 11:34:40,215 - INFO - Distance to target: 103.62 meters | Current Altitude: -0.78 m
+2025-02-23 11:34:40,724 - INFO - Distance to target: 104.48 meters | Current Altitude: -0.78 m
+2025-02-23 11:34:41,228 - INFO - Distance to target: 105.47 meters | Current Altitude: -0.78 m
+2025-02-23 11:34:41,734 - INFO - Distance to target: 106.22 meters | Current Altitude: -0.76 m
+2025-02-23 11:34:42,238 - INFO - Distance to target: 106.73 meters | Current Altitude: -0.74 m
+2025-02-23 11:34:42,742 - INFO - Distance to target: 107.01 meters | Current Altitude: -0.73 m
+2025-02-23 11:34:43,247 - INFO - Distance to target: 106.97 meters | Current Altitude: -0.72 m
+2025-02-23 11:34:43,751 - INFO - Distance to target: 106.90 meters | Current Altitude: -0.71 m
+2025-02-23 11:34:44,256 - INFO - Distance to target: 106.87 meters | Current Altitude: -0.67 m
+2025-02-23 11:34:44,834 - INFO - Distance to target: 107.27 meters | Current Altitude: -0.63 m
+2025-02-23 11:34:45,338 - INFO - Distance to target: 107.30 meters | Current Altitude: -0.59 m
+2025-02-23 11:34:45,842 - INFO - Distance to target: 107.05 meters | Current Altitude: -0.55 m
+2025-02-23 11:34:46,379 - INFO - Distance to target: 106.65 meters | Current Altitude: -0.57 m
+2025-02-23 11:34:46,885 - INFO - Distance to target: 106.24 meters | Current Altitude: -0.56 m
+2025-02-23 11:34:47,803 - INFO - Distance to target: 104.95 meters | Current Altitude: -0.56 m
+2025-02-23 11:34:48,828 - INFO - Distance to target: 103.73 meters | Current Altitude: -0.59 m
+2025-02-23 11:34:49,333 - INFO - Distance to target: 103.57 meters | Current Altitude: -0.58 m
+2025-02-23 11:34:49,838 - INFO - Distance to target: 103.04 meters | Current Altitude: -0.57 m
+2025-02-23 11:34:50,344 - INFO - Distance to target: 102.28 meters | Current Altitude: -0.43 m
+2025-02-23 11:34:50,849 - INFO - Distance to target: 101.63 meters | Current Altitude: -0.34 m
+2025-02-23 11:34:51,354 - INFO - Distance to target: 101.11 meters | Current Altitude: -0.35 m
+2025-02-23 11:34:51,860 - INFO - Distance to target: 100.64 meters | Current Altitude: -0.31 m
+2025-02-23 11:34:52,365 - INFO - Distance to target: 100.17 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:52,870 - INFO - Distance to target: 99.97 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:53,374 - INFO - Distance to target: 99.77 meters | Current Altitude: -0.42 m
+2025-02-23 11:34:53,879 - INFO - Distance to target: 99.67 meters | Current Altitude: -0.43 m
+2025-02-23 11:34:54,384 - INFO - Distance to target: 99.47 meters | Current Altitude: -0.45 m
+2025-02-23 11:34:54,889 - INFO - Distance to target: 99.23 meters | Current Altitude: -0.45 m
+2025-02-23 11:34:55,392 - INFO - Distance to target: 98.87 meters | Current Altitude: -0.44 m
+2025-02-23 11:34:55,897 - INFO - Distance to target: 98.64 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:56,401 - INFO - Distance to target: 98.31 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:56,907 - INFO - Distance to target: 97.82 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:57,412 - INFO - Distance to target: 97.44 meters | Current Altitude: -0.41 m
+2025-02-23 11:34:57,916 - INFO - Distance to target: 97.24 meters | Current Altitude: -0.40 m
+2025-02-23 11:34:58,422 - INFO - Distance to target: 97.16 meters | Current Altitude: -0.39 m
+2025-02-23 11:34:58,927 - INFO - Distance to target: 97.26 meters | Current Altitude: -0.38 m
+2025-02-23 11:34:59,432 - INFO - Distance to target: 97.34 meters | Current Altitude: -0.36 m
+2025-02-23 11:34:59,938 - INFO - Distance to target: 97.30 meters | Current Altitude: -0.36 m
+2025-02-23 11:35:00,444 - INFO - Distance to target: 97.37 meters | Current Altitude: -0.36 m
+2025-02-23 11:35:00,949 - INFO - Distance to target: 97.62 meters | Current Altitude: -0.37 m
+2025-02-23 11:35:01,454 - INFO - Distance to target: 97.82 meters | Current Altitude: -0.38 m
+2025-02-23 11:35:01,959 - INFO - Distance to target: 98.01 meters | Current Altitude: -0.37 m
+2025-02-23 11:35:02,464 - INFO - Distance to target: 98.15 meters | Current Altitude: -0.36 m
+2025-02-23 11:35:02,969 - INFO - Distance to target: 98.25 meters | Current Altitude: -0.36 m
+2025-02-23 11:35:03,474 - INFO - Distance to target: 98.39 meters | Current Altitude: -0.37 m
+2025-02-23 11:35:03,979 - INFO - Distance to target: 98.53 meters | Current Altitude: -0.37 m
+2025-02-23 11:35:04,484 - INFO - Distance to target: 98.72 meters | Current Altitude: -0.36 m
+2025-02-23 11:35:04,991 - INFO - Distance to target: 98.88 meters | Current Altitude: -0.35 m
+2025-02-23 11:35:05,495 - INFO - Distance to target: 99.05 meters | Current Altitude: -0.35 m
+2025-02-23 11:35:06,000 - INFO - Distance to target: 99.22 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:06,507 - INFO - Distance to target: 99.39 meters | Current Altitude: -0.33 m
+2025-02-23 11:35:07,011 - INFO - Distance to target: 99.51 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:07,516 - INFO - Distance to target: 99.61 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:08,023 - INFO - Distance to target: 99.73 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:08,527 - INFO - Distance to target: 99.83 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:09,031 - INFO - Distance to target: 99.90 meters | Current Altitude: -0.34 m
+2025-02-23 11:35:09,536 - INFO - Distance to target: 99.99 meters | Current Altitude: -0.33 m
+2025-02-23 11:35:10,040 - INFO - Distance to target: 100.10 meters | Current Altitude: -0.33 m
+2025-02-23 11:35:10,331 - ERROR - Mission interrupted by user.
+2025-02-23 11:35:10,332 - INFO - Mission Time: 69.84 seconds

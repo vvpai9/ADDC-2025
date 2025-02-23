@@ -1,9 +1,44 @@
+import logging
+import sys
 import time
 from pymavlink import mavutil
 from geopy.distance import geodesic
 
+# Configure logging
+log_filename = "mission_debug.log"
+logging.basicConfig(
+    level=logging.DEBUG,  # Capture all levels of logs (DEBUG, INFO, ERROR)
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_filename, mode='a'),  # Write logs to file
+        logging.StreamHandler(sys.stdout)  # Still print to console
+    ]
+)
+
+# Redirect stdout and stderr to logger
+class LoggerWriter:
+    def __init__(self, level):
+        self.level = level
+        self.buffer = ''
+
+    def write(self, message):
+        if message != '\n':
+            self.buffer += message
+        if '\n' in message:
+            self.flush()
+
+    def flush(self):
+        if self.buffer:
+            self.level(self.buffer)
+            self.buffer = ''
+
+sys.stdout = LoggerWriter(logging.info)
+sys.stderr = LoggerWriter(logging.error)
+
+logging.info("-----------------------------------------------") # Separator for new runs
+
 # Establish connection to the drone
-print("Connecting to drone...")
+logging.info("Connecting to drone...")
 time.sleep(2)
 master = mavutil.mavlink_connection("udpout:192.168.144.10:14552")
 
@@ -39,12 +74,11 @@ master.mav.ping_send(
     int(time.time() * 1e6),  # Unix time in microseconds
     0,  # Ping number
     0,  # Request ping of all systems
-    0   # Request ping of all components
-)
+    0)   # Request ping of all components
 
 # Wait for the first heartbeat to confirm connection
 master.wait_heartbeat()
-print("Heartbeat received! Drone is online.")
+logging.info("Heartbeat received! Drone is online.")
 
 # Function to change mode and confirm it
 def set_mode(mode_id):
@@ -53,21 +87,21 @@ def set_mode(mode_id):
         mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
         mode_id
     )
-    print(f"Mode change command sent for mode ID {mode_id}")
+    logging.info(f"Mode change command sent for mode ID {mode_id}")
     # Confirm mode change
     while True:
         msg = master.recv_match(type='HEARTBEAT', blocking=True)
         if msg and msg.custom_mode == mode_id:
-            print(f"Mode successfully changed to ID {mode_id}")
+            logging.info(f"Mode successfully changed to ID {mode_id}")
             break
 
 # Function to arm the drone and takeoff to altitude
 def arm_and_takeoff(altitude):
-    print("GUIDED Mode")
+    logging.info("GUIDED Mode")
     set_mode(GUIDED)
     time.sleep(2)
     
-    print("Arming motors...")
+    logging.info("Arming motors...")
     master.mav.command_long_send(
         master.target_system,
         master.target_component,
@@ -78,7 +112,7 @@ def arm_and_takeoff(altitude):
     )
 
     time.sleep(2)
-    print(f"Initiating takeoff to {altitude} meters...")
+    logging.info(f"Initiating takeoff to {altitude} meters...")
     master.mav.command_long_send(
         master.target_system,
         master.target_component,
@@ -86,16 +120,16 @@ def arm_and_takeoff(altitude):
         0,
         0, 0, 0, 0, 0, 0, altitude
     )
-    print("Takeoff command sent.")
+    logging.info("Takeoff command sent.")
     while True:
         msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=False)
         if msg:
             current_altitude = msg.relative_alt / 1000.0  # Convert from mm to meters
-            print(f"Altitude: {current_altitude:.2f} meters")
+            logging.info(f"Altitude: {current_altitude:.2f} meters")
             if current_altitude >= altitude * 0.95:
-                print("Reached target altitude.")
+                logging.info("Reached target altitude.")
                 break
-        time.sleep(1)
+        time.sleep(0.5)
 
 # Function to send velocity command in NED frame
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration=1):
@@ -114,6 +148,7 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration=1):
 
 # Function to drop payload using servo
 def drop_payload(PWM):
+    logging.info("Dropping payload...")
     master.mav.command_long_send(
         master.target_system, # target_system
         master.target_component, # target_component
@@ -122,7 +157,7 @@ def drop_payload(PWM):
         9,  # Servo number
         PWM, # servo position between 1000 and 2000
         0, 0, 0, 0, 0) # param 3 ~ 7 not used
-    print("Payload Dropped.")
+    logging.info("Payload Dropped.")
 
 def go_to_location(latitude, longitude, altitude):
     """
@@ -152,7 +187,7 @@ def go_to_location(latitude, longitude, altitude):
         lon,  # Longitude
         altitude  # Altitude in meters
     )
-    print(f"Command sent to go to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}m")
+    logging.info(f"Command sent to go to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}m")
 
     # Monitor distance to target
     while True:
@@ -162,9 +197,9 @@ def go_to_location(latitude, longitude, altitude):
             current_lon = msg.lon / 1e7
             current_alt = msg.relative_alt / 1000.0
             distance = geodesic((latitude, longitude), (current_lat, current_lon)).meters
-            print(f"Distance to target: {distance:.2f} meters | Current Altitude: {current_alt:.2f} m")
+            logging.info(f"Distance to target: {distance:.2f} meters | Current Altitude: {current_alt:.2f} m")
             if distance <= 1.0 and abs(current_alt - altitude) <= 0.5:
-                print("Reached target location.")
+                logging.info("Reached target location.")
                 break
         time.sleep(0.5)
 
@@ -172,35 +207,35 @@ def mission():
     try:
         # Mission sequence
         start_time = time.time()
-        print("Mission Begins")
+        logging.info("Mission Begins")
 
         # Arm and takeoff to 3 meters
         # arm_and_takeoff(3)
 
         # Example navigation command
-        go_to_location(15.369547, 75.124514, 3)
+        go_to_location(15.369547845989852365, 75.12451452369874226, 3)
 
         # Wait for 5 seconds
         time.sleep(3)
 
         # Land the drone
-        # print("LAND Mode")
+        # logging.info("LAND Mode")
         # set_mode(LAND)
         # time.sleep(2)
 
-        print("RTL Mode")
+        logging.info("RTL Mode")
         # set_mode(RTL)
         time.sleep(2)
 
-        print("Mission complete.")
+        logging.info("Mission complete.")
     except KeyboardInterrupt:
-        print("Mission interrupted by user.")
+        logging.error("Mission interrupted by user.")
     except Exception as e:
-        print(e)
+        logging.error(e)
     finally:
         end_time = time.time()
         mission_time = end_time - start_time
-        print(f"Mission Time: {mission_time:.2f} seconds")
+        logging.info(f"Mission Time: {mission_time:.2f} seconds")
 
 if __name__ == "__main__":
     mission()
