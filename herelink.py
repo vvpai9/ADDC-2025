@@ -95,6 +95,44 @@ def set_mode(mode_id):
             logging.info(f"Mode successfully changed to ID {mode_id}")
             break
 
+def move_ned_frame(target_lat, target_lon):
+    """
+    Moves the drone first along the X-axis (North) and then Y-axis (East) sequentially.
+    Sends 1 m/s velocity until the distance is covered.
+    """
+    msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
+    current_lat = msg.lat / 1e7
+    current_lon = msg.lon / 1e7
+
+    # Calculate distances separately for latitude and longitude
+    distance_x = geodesic((current_lat, current_lon), (target_lat, current_lon)).meters  # North-South
+    distance_y = geodesic((target_lat, current_lon), (target_lat, target_lon)).meters  # East-West
+
+    # Adjust signs based on target position
+    if target_lat < current_lat:
+        distance_x = -distance_x  # Move South
+    if target_lon < current_lon:
+        distance_y = -distance_y  # Move West
+
+    logging.info(f"Distance X (North/South): {distance_x:.2f} meters")
+    logging.info(f"Distance Y (East/West): {distance_y:.2f} meters")
+
+    # Move along the X-axis (Right of Drone)
+    if abs(distance_x) > 0:
+        direction_x = 1 if distance_x > 0 else -1  # Determine if moving North or South
+        duration_x = int(abs(distance_x))  # Time to travel at 1 m/s
+        logging.info(f"Moving along X for {duration_x} seconds.")
+        send_ned_velocity(0, direction_x, 0, duration=duration_x)
+
+    # Move along the Y-axis (Front of Drone)
+    if abs(distance_y) > 0:
+        direction_y = 1 if distance_y > 0 else -1  # Determine if moving East or West
+        duration_y = int(abs(distance_y))  # Time to travel at 1 m/s
+        logging.info(f"Moving along Y for {duration_y} seconds.")
+        send_ned_velocity(direction_y, 0, 0, duration=duration_y)
+
+    logging.info("Reached target location.")
+
 # Function to arm the drone and takeoff to altitude
 def arm_and_takeoff(altitude):
     logging.info("GUIDED Mode")
@@ -169,29 +207,27 @@ def go_to_location(latitude, longitude, altitude):
     - longitude: Target longitude in degrees
     - altitude: Target altitude in meters (relative to home position)
     """
-    # Convert latitude and longitude to degrees * 1E7 (MAVLink format)
-    lat = int(latitude * 1e7)
-    lon = int(longitude * 1e7)
-
     # Sending command using MAV_CMD_NAV_WAYPOINT
-    master.mav.command_long_send(
-        master.target_system,  # Target system ID
-        master.target_component,  # Target component ID
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,  # Command ID
-        0,  # Confirmation
-        0,  # Hold time in seconds
-        0,  # Acceptance radius in meters
-        0,  # Pass through (0 = stop at waypoint, 1 = continue)
-        float('nan'),  # Yaw (NaN to use default)
-        lat,  # Latitude
-        lon,  # Longitude
-        altitude  # Altitude in meters
+    master.mav.mission_item_send(
+        0,0, # Target component ID
+        0,                      # Sequence number (position in mission)
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, # Coordinate frame
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, # Command type (fly to waypoint)
+        2,                      # Current (set to 1 if this is the current mission item)
+        0,                      # Auto-continue (move to next waypoint automatically)
+        0, 0, 0, 0,             # Params 1-4 (unused here)
+        latitude,               # Latitude of waypoint
+        longitude,              # Longitude of waypoint
+        altitude                # Altitude (in meters)
     )
+    print("Command sent")
+
     logging.info(f"Command sent to go to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}m")
 
     # Monitor distance to target
     while True:
         msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
+        
         if msg:
             current_lat = msg.lat / 1e7
             current_lon = msg.lon / 1e7
@@ -210,10 +246,10 @@ def mission():
         logging.info("Mission Begins")
 
         # Arm and takeoff to 3 meters
-        # arm_and_takeoff(3)
+        arm_and_takeoff(5)
 
         # Example navigation command
-        go_to_location(15.369547845989852365, 75.12451452369874226, 3)
+        go_to_location(15.369510898015719, 75.12453186193679, 5)
 
         # Wait for 5 seconds
         time.sleep(3)
@@ -222,9 +258,9 @@ def mission():
         # logging.info("LAND Mode")
         # set_mode(LAND)
         # time.sleep(2)
-
+         
         logging.info("RTL Mode")
-        # set_mode(RTL)
+        set_mode(RTL)
         time.sleep(2)
 
         logging.info("Mission complete.")
