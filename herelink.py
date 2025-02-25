@@ -80,6 +80,49 @@ master.mav.ping_send(
 master.wait_heartbeat()
 logging.info("Heartbeat received! Drone is online.")
 
+# Define geofence
+geofence = [
+    (13.2865093, 77.5961633),  # Bottom-Left
+    (13.2864995, 77.5963980),  # Bottom-Right
+    (13.2868813, 77.5964610),  # Top-Right
+    (13.2869165, 77.5962344)   # Top-Left
+] # Change values as required
+
+x_divisions = 15
+y_divisions = 10
+altitude = 15
+
+def generate_grid(geofence, x_divisions, y_divisions):
+    """Generate a search grid based on geofence coordinates."""
+    print("Generating grid...")
+    
+    bottom_left, bottom_right, top_right, top_left = geofence
+    lat_start, lon_start = bottom_left
+    lat_end, lon_end = top_right
+
+    lat_step = (lat_end - lat_start) / y_divisions
+    lon_step = (lon_end - lon_start) / x_divisions
+
+    grid = []
+    for i in range(y_divisions + 1):
+        row = []
+        for j in range(x_divisions + 1):
+            lat = lat_start + i * lat_step
+            lon = lon_start + j * lon_step
+            row.append((lat, lon))
+        grid.append(row)
+    
+    return grid
+
+def serpentine_path(grid):
+    """Follow a serpentine path over the grid."""
+    for i, row in enumerate(grid):
+        path = row if i % 2 == 0 else reversed(row)
+        for point in path:
+            lat, lon = point
+            go_to_location(lat, lon, altitude)
+            time.sleep(0.5)
+
 # Function to change mode and confirm it
 def set_mode(mode_id):
     master.mav.set_mode_send(
@@ -197,30 +240,40 @@ def drop_payload(PWM):
         0, 0, 0, 0, 0) # param 3 ~ 7 not used
     logging.info("Payload Dropped.")
 
-def go_to_location(latitude, longitude, altitude):
+def go_to_location(latitude, longitude, altitude, groundspeed=3):
     """
-    Sends a command to go to the specified GPS location.
+    Sends a command to go to the specified GPS location with adjustable groundspeed.
     
     Parameters:
-    - connection: MAVLink connection object
     - latitude: Target latitude in degrees
     - longitude: Target longitude in degrees
     - altitude: Target altitude in meters (relative to home position)
+    - groundspeed: Desired speed in m/s
     """
+    # Set the desired groundspeed
+    master.mav.command_long_send(
+        0, 0,  # Target system and component ID
+        mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,  # Command to change speed
+        0,  # Confirmation
+        0,  # Speed type (0 = airspeed, 1 = groundspeed)
+        groundspeed,  # Desired speed in m/s
+        -1, 0, 0, 0, 0  # Unused parameters
+    )
+    logging.info(f"Groundspeed set to {groundspeed} m/s.")
+
     # Sending command using MAV_CMD_NAV_WAYPOINT
     master.mav.mission_item_send(
-        0,0, # Target component ID
-        0,                      # Sequence number (position in mission)
-        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, # Coordinate frame
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, # Command type (fly to waypoint)
-        2,                      # Current (set to 1 if this is the current mission item)
-        0,                      # Auto-continue (move to next waypoint automatically)
-        0, 0, 0, 0,             # Params 1-4 (unused here)
-        latitude,               # Latitude of waypoint
-        longitude,              # Longitude of waypoint
-        altitude                # Altitude (in meters)
+        0, 0,  # Target component ID
+        0,  # Sequence number (position in mission)
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,  # Coordinate frame
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,  # Command type (fly to waypoint)
+        2,  # Current (set to 1 if this is the current mission item)
+        0,  # Auto-continue (move to next waypoint automatically)
+        0, 0, 0, 0,  # Params 1-4 (unused here)
+        latitude,  # Latitude of waypoint
+        longitude,  # Longitude of waypoint
+        altitude  # Altitude (in meters)
     )
-    print("Command sent")
 
     logging.info(f"Command sent to go to Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}m")
 
@@ -243,15 +296,16 @@ def mission():
     try:
         # Mission sequence
         start_time = time.time()
+        grid = generate_grid(geofence, x_divisions, y_divisions)
         logging.info("Mission Begins")
 
         # Arm and takeoff to 3 meters
-        arm_and_takeoff(5)
+        arm_and_takeoff(altitude)
+        time.sleep(2)
 
-        # Example navigation command
-        go_to_location(15.369510898015719, 75.12453186193679, 5)
+        serpentine_path(grid)
 
-        # Wait for 5 seconds
+        # Wait for 3 seconds
         time.sleep(3)
 
         # Land the drone
@@ -275,3 +329,4 @@ def mission():
 
 if __name__ == "__main__":
     mission()
+      
